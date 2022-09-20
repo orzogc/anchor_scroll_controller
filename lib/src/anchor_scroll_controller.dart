@@ -254,7 +254,6 @@ class AnchorScrollControllerHelper {
         scrollController.jumpTo(_applyAnchorOffset(targetScrollOffset));
       }
 
-      _currIndex = index;
       _isScrollingToIndex = false;
     }
   }
