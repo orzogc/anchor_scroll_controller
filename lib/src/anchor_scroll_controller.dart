@@ -1,18 +1,21 @@
 library anchor_scroll_controller;
 
 import 'dart:async';
+
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'anchor_scroll_wrapper.dart';
 
 typedef IndexChanged = void Function(int index, bool userScroll);
 
+typedef GetAnchorOffset = double Function();
+
 class AnchorScrollControllerHelper {
   AnchorScrollControllerHelper(
       {required this.scrollController,
       this.fixedItemSize,
       this.onIndexChanged,
-      this.anchorOffset});
+      this.getAnchorOffset});
 
   /// The [ScrollController] of the [ScrollView]
   final ScrollController scrollController;
@@ -23,10 +26,13 @@ class AnchorScrollControllerHelper {
   final double? fixedItemSize;
 
   /// The offset to apply to the top of each item
-  final double? anchorOffset;
+  final GetAnchorOffset? getAnchorOffset;
 
   /// The map which stores the states of the current items in the viewport
   final Map<int, AnchorItemWrapperState> _itemMap = {};
+
+  double? get anchorOffset =>
+      getAnchorOffset != null ? getAnchorOffset!() : null;
 
   void addItem(int index, AnchorItemWrapperState state) {
     _itemMap[index] = state;
@@ -275,10 +281,12 @@ class AnchorScrollController extends ScrollController {
     double initialScrollOffset = 0.0,
     bool keepScrollOffset = true,
     String? debugLabel,
-    this.onIndexChanged,
-    this.fixedItemSize,
-    this.anchorOffset,
-  }) : super(
+    IndexChanged? onIndexChanged,
+    double? fixedItemSize,
+    double? anchorOffset,
+    GetAnchorOffset? getAnchorOffset,
+  })  : assert(anchorOffset == null || getAnchorOffset == null),
+        super(
             initialScrollOffset: initialScrollOffset,
             keepScrollOffset: keepScrollOffset,
             debugLabel: debugLabel) {
@@ -286,14 +294,15 @@ class AnchorScrollController extends ScrollController {
         scrollController: this,
         fixedItemSize: fixedItemSize,
         onIndexChanged: onIndexChanged,
-        anchorOffset: anchorOffset);
+        getAnchorOffset:
+            anchorOffset != null ? () => anchorOffset : getAnchorOffset);
   }
 
-  final double? fixedItemSize;
+  IndexChanged? get onIndexChanged => _helper.onIndexChanged;
 
-  final IndexChanged? onIndexChanged;
+  double? get fixedItemSize => _helper.fixedItemSize;
 
-  final double? anchorOffset;
+  double? get anchorOffset => _helper.anchorOffset;
 
   late final AnchorScrollControllerHelper _helper;
 
