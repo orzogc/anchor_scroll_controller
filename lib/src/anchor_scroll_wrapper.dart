@@ -41,7 +41,24 @@ class AnchorItemWrapperState extends State<AnchorItemWrapper> {
   @override
   void didUpdateWidget(AnchorItemWrapper oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.index != widget.index || oldWidget.key != widget.key) {
+
+    if (oldWidget.controller != widget.controller) {
+      oldWidget.controller?.removeItem(oldWidget.index);
+      widget.controller?.addItem(widget.index, this);
+    }
+
+    if (oldWidget.scrollViewWrapper != widget.scrollViewWrapper) {
+      if (oldWidget.controller == null) {
+        oldWidget.scrollViewWrapper?.removeItem(oldWidget.index);
+      }
+      if (widget.controller == null) {
+        widget.scrollViewWrapper?.addItem(widget.index, this);
+      }
+    }
+
+    if (oldWidget.controller == widget.controller &&
+        oldWidget.scrollViewWrapper == widget.scrollViewWrapper &&
+        (oldWidget.index != widget.index || oldWidget.key != widget.key)) {
       _removeItem(oldWidget.index);
       _addItem(widget.index);
     }
@@ -73,18 +90,21 @@ class AnchorScrollViewWrapper extends InheritedWidget {
   AnchorScrollViewWrapper({
     required this.controller,
     required Widget child,
-    this.fixedItemSize,
-    this.onIndexChanged,
-    this.anchorOffset,
+    double? fixedItemSize,
+    IndexChanged? onIndexChanged,
+    double? anchorOffset,
     double? pinGroupTitleOffset,
+    GetAnchorOffset? getAnchorOffset,
     Key? key,
-  }) : super(key: key, child: child) {
+  })  : assert(anchorOffset == null || getAnchorOffset == null),
+        super(key: key, child: child) {
     _helper = AnchorScrollControllerHelper(
       scrollController: controller,
       fixedItemSize: fixedItemSize,
       onIndexChanged: onIndexChanged,
-      anchorOffset: anchorOffset,
       pinGroupTitleOffset: pinGroupTitleOffset,
+      getAnchorOffset:
+          anchorOffset != null ? () => anchorOffset : getAnchorOffset,
     );
     _scrollListener = () {
       _helper.notifyIndexChanged();
@@ -93,11 +113,11 @@ class AnchorScrollViewWrapper extends InheritedWidget {
 
   final ScrollController controller;
 
-  final double? fixedItemSize;
+  double? get fixedItemSize => _helper.fixedItemSize;
 
-  final IndexChanged? onIndexChanged;
+  IndexChanged? get onIndexChanged => _helper.onIndexChanged;
 
-  final double? anchorOffset;
+  double? get anchorOffset => _helper.anchorOffset;
 
   late final AnchorScrollControllerHelper _helper;
 

@@ -1,19 +1,22 @@
 library anchor_scroll_controller;
 
 import 'dart:async';
+import 'dart:collection';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'anchor_scroll_wrapper.dart';
 
 typedef IndexChanged = void Function(int index, bool userScroll);
 
+typedef GetAnchorOffset = double Function();
+
 class AnchorScrollControllerHelper {
   AnchorScrollControllerHelper({
     required this.scrollController,
     this.fixedItemSize,
     this.onIndexChanged,
-    this.anchorOffset,
     this.pinGroupTitleOffset,
+    this.getAnchorOffset,
   });
 
   /// The [ScrollController] of the [ScrollView]
@@ -25,7 +28,7 @@ class AnchorScrollControllerHelper {
   final double? fixedItemSize;
 
   /// The offset to apply to the top of each item
-  final double? anchorOffset;
+  final GetAnchorOffset? getAnchorOffset;
 
   /// The offset to apply to calculate current index
   final double? pinGroupTitleOffset;
@@ -43,7 +46,14 @@ class AnchorScrollControllerHelper {
   }
 
   /// The map which stores the states of the current items in the viewport
-  final Map<int, AnchorItemWrapperState> _itemMap = {};
+  final Map<int, AnchorItemWrapperState> _itemMap =
+      LinkedHashMap<int, AnchorItemWrapperState>(
+    equals: (key1, key2) => key1 == key2,
+    hashCode: (key) => key,
+  );
+
+  double? get anchorOffset =>
+      getAnchorOffset != null ? getAnchorOffset!() : null;
 
   void addItem(int index, AnchorItemWrapperState state) {
     _itemMap[index] = state;
@@ -303,7 +313,7 @@ class AnchorScrollControllerHelper {
     if (context != null) {
       final renderBox = context.findRenderObject();
       final viewport = RenderAbstractViewport.of(renderBox);
-      if (renderBox != null && viewport != null) {
+      if (renderBox != null) {
         offset = viewport.getOffsetToReveal(renderBox, alignment);
       }
     }
@@ -321,11 +331,13 @@ class AnchorScrollController extends ScrollController {
     double initialScrollOffset = 0.0,
     bool keepScrollOffset = true,
     String? debugLabel,
-    this.onIndexChanged,
-    this.fixedItemSize,
-    this.anchorOffset,
+    IndexChanged? onIndexChanged,
+    double? fixedItemSize,
+    double? anchorOffset,
     double? pinOffset,
-  }) : super(
+    GetAnchorOffset? getAnchorOffset,
+  })  : assert(anchorOffset == null || getAnchorOffset == null),
+        super(
           initialScrollOffset: initialScrollOffset,
           keepScrollOffset: keepScrollOffset,
           debugLabel: debugLabel,
@@ -334,16 +346,17 @@ class AnchorScrollController extends ScrollController {
       scrollController: this,
       fixedItemSize: fixedItemSize,
       onIndexChanged: onIndexChanged,
-      anchorOffset: anchorOffset,
       pinGroupTitleOffset: pinOffset,
+      getAnchorOffset:
+          anchorOffset != null ? () => anchorOffset : getAnchorOffset,
     );
   }
 
-  final double? fixedItemSize;
+  double? get fixedItemSize => _helper.fixedItemSize;
 
-  final IndexChanged? onIndexChanged;
+  IndexChanged? get onIndexChanged => _helper.onIndexChanged;
 
-  final double? anchorOffset;
+  double? get anchorOffset => _helper.anchorOffset;
 
   late final AnchorScrollControllerHelper _helper;
 
