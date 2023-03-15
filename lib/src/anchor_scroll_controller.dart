@@ -14,10 +14,10 @@ class AnchorScrollControllerHelper {
   AnchorScrollControllerHelper({
     required this.scrollController,
     this.fixedItemSize,
-    this.onIndexChanged,
+    IndexChanged? onIndexChanged,
     this.pinGroupTitleOffset,
     this.getAnchorOffset,
-  });
+  }) : _onIndexChanged = onIndexChanged;
 
   /// The [ScrollController] of the [ScrollView]
   final ScrollController scrollController;
@@ -63,12 +63,20 @@ class AnchorScrollControllerHelper {
     _itemMap.remove(index);
   }
 
+  void dispose() {
+    _onIndexChanged = null;
+    indexListeners.clear();
+    _itemMap.clear();
+  }
+
   /// current index
   int _currIndex = 0;
   int get currIndex => _currIndex;
 
   /// callback when current index changed
-  final IndexChanged? onIndexChanged;
+  IndexChanged? _onIndexChanged;
+
+  IndexChanged? get onIndexChanged => _onIndexChanged;
 
   double _lastOffset = 0;
   void notifyIndexChanged() {
@@ -352,35 +360,43 @@ class AnchorScrollController extends ScrollController {
     );
   }
 
-  double? get fixedItemSize => _helper.fixedItemSize;
+  double? get fixedItemSize => _helper?.fixedItemSize;
 
-  IndexChanged? get onIndexChanged => _helper.onIndexChanged;
+  IndexChanged? get onIndexChanged => _helper?.onIndexChanged;
 
-  double? get anchorOffset => _helper.anchorOffset;
+  double? get anchorOffset => _helper?.anchorOffset;
 
-  late final AnchorScrollControllerHelper _helper;
+  AnchorScrollControllerHelper? _helper;
 
   void addIndexListener(IndexChanged indexListener) {
-    _helper.addIndexListener(indexListener);
+    _helper?.addIndexListener(indexListener);
   }
 
   void removeIndexListener(IndexChanged indexListener) {
-    _helper.removeIndexListener(indexListener);
+    _helper?.removeIndexListener(indexListener);
   }
 
   void addItem(int index, AnchorItemWrapperState state) {
-    _helper.addItem(index, state);
+    _helper?.addItem(index, state);
   }
 
   void removeItem(int index) {
-    _helper.removeItem(index);
+    _helper?.removeItem(index);
   }
 
   @override
   void notifyListeners() {
-    _helper.notifyIndexChanged();
+    _helper?.notifyIndexChanged();
 
     super.notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _helper?.dispose();
+    _helper = null;
+
+    super.dispose();
   }
 
   Future<void> scrollToIndex({
@@ -388,7 +404,7 @@ class AnchorScrollController extends ScrollController {
     double scrollSpeed = 2,
     Curve curve = Curves.linear,
   }) async {
-    await _helper.scrollToIndex(
+    await _helper?.scrollToIndex(
         index: index, scrollSpeed: scrollSpeed, curve: curve);
   }
 }
