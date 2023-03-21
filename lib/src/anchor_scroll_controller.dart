@@ -66,7 +66,6 @@ class AnchorScrollControllerHelper {
   void dispose() {
     _onIndexChanged = null;
     indexListeners.clear();
-    _itemMap.clear();
   }
 
   /// current index
