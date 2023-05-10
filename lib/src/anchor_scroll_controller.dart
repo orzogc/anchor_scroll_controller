@@ -1,7 +1,6 @@
 library anchor_scroll_controller;
 
 import 'dart:async';
-import 'dart:collection';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'anchor_scroll_wrapper.dart';
@@ -46,11 +45,7 @@ class AnchorScrollControllerHelper {
   }
 
   /// The map which stores the states of the current items in the viewport
-  final Map<int, AnchorItemWrapperState> _itemMap =
-      LinkedHashMap<int, AnchorItemWrapperState>(
-    equals: (key1, key2) => key1 == key2,
-    hashCode: (key) => key,
-  );
+  final Map<int, AnchorItemWrapperState> _itemMap = {};
 
   double? get anchorOffset =>
       getAnchorOffset != null ? getAnchorOffset!() : null;
