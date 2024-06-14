@@ -233,6 +233,20 @@ class AnchorScrollControllerHelper {
       //    we can get its offset and scroll to it.
       if (_itemMap.containsKey(index)) {
         await _animateToIndexInViewport(index, scrollSpeed, curve);
+        int lastIndex = _currIndex;
+        while (_currIndex != index) {
+          await _animateToIndexInViewport(index, scrollSpeed, curve);
+
+          if (_currIndex == lastIndex) {
+            break;
+          }
+          lastIndex = _currIndex;
+
+          if (!_isScrollingToIndex) {
+            // this scrolling is interrupted
+            return;
+          }
+        }
       } else {
         int tmpIndex = _currIndex;
         while (!_itemMap.containsKey(index)) {
