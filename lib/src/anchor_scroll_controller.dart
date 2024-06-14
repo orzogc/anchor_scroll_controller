@@ -47,8 +47,7 @@ class AnchorScrollControllerHelper {
   /// The map which stores the states of the current items in the viewport
   final Map<int, AnchorItemWrapperState> _itemMap = {};
 
-  double? get anchorOffset =>
-      getAnchorOffset != null ? getAnchorOffset!() : null;
+  double? get anchorOffset => getAnchorOffset?.call();
 
   void addItem(int index, AnchorItemWrapperState state) {
     _itemMap[index] = state;
